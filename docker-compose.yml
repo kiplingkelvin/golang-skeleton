@@ -1,0 +1,27 @@
+version: "3"
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    expose:
+      - $GOLANGSKELETON_PORT/tcp
+    ports:
+      - "$GOLANGSKELETON_PORT:$GOLANGSKELETON_PORT"
+    volumes:
+      - "${GOLANGSKELETON_APP_DIR}:/go/src/github.com/kiplingkelvin/golang-skeleton"
+      - go-modules:/go/pkg/mod
+      
+      
+    restart: unless-stopped
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    name: app_network
+
+volumes:
+  go-modules:

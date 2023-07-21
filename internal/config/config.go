@@ -1,6 +1,8 @@
 package config
 
 import (
+	"kiplingkelvin/golang-skeleton/internal/services"
+
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/sirupsen/logrus"
@@ -16,6 +18,7 @@ type WebServerConfig struct {
 	EnableAuth  bool
 	CorsEnabled bool   `default:"true" split_words:"true"`
 	JWTSecret   string `required:"true" split_words:"true"`
+	Service     *services.ServiceConfig
 }
 
 // FromEnv ...

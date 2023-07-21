@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"kiplingkelvin/golang-skeleton/internal/config"
+	"kiplingkelvin/golang-skeleton/internal/services"
 	"net/http"
 
 	"github.com/rs/cors"
@@ -33,6 +34,12 @@ func RunServer() (err error) {
 	}
 
 	logrus.Infof("Starting HTTPS server on port %s", webServerConfig.Port)
+
+	err = services.Initialize(webServerConfig.Service)
+	if err != nil {
+		logrus.WithField("Error", err).Error("Error initializing service")
+		return err
+	}
 
 	server := NewServer(webServerConfig)
 	server.Router.InitializeRoutes(webServerConfig)

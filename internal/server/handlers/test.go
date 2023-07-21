@@ -1,16 +1,26 @@
 package handlers
 
 import (
+	"encoding/json"
+	"kiplingkelvin/golang-skeleton/internal/models"
+	"kiplingkelvin/golang-skeleton/internal/services"
 	"net/http"
-    "encoding/json"
+
 	"github.com/sirupsen/logrus"
-    "kiplingkelvin/golang-skeleton/internal/models"
 )
 
 // TestHandler ...
 func TestHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
+
+	err := services.Service.PostgresDAO.PostgresPing(r.Context())
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"ping error": err,
+		}).Error("json encode error")
+	}
+
 
 	healthCheckResponse := models.HealthCheck{
 		Status:    "pass",
@@ -20,7 +30,7 @@ func TestHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 
-	err := json.NewEncoder(w).Encode(healthCheckResponse)
+	err = json.NewEncoder(w).Encode(healthCheckResponse)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error": err,

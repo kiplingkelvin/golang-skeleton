@@ -3,7 +3,6 @@ package server
 import (
 	"fmt"
 	"kiplingkelvin/golang-skeleton/internal/config"
-	"kiplingkelvin/golang-skeleton/internal/models"
 	"kiplingkelvin/golang-skeleton/internal/pkg"
 	"kiplingkelvin/golang-skeleton/internal/pkg/postgres"
 
@@ -14,7 +13,7 @@ import (
 )
 
 // This time make models.BookModel the dependency in Env.
-var AllModelDaos models.PostgresDAO
+var AllModelDaos postgres.PostgresDAO
 
 // Server ...
 type Server struct {
@@ -47,12 +46,10 @@ func RunServer() (err error) {
 		return err
 	}
 
-	postgresDB, err := postgres.NewPostgres(&webServerConfig.PostgresConfig).Db()
+	PostgresDB, err := postgres.NewPostgres(&webServerConfig.PostgresConfig).Db()
 
-	// Initalise all the model daos
-	AllModelDaos.Healthcheck = models.NewHealthCheckModel(postgresDB)
-	AllModelDaos.Merchant = models.NewMerchantModel(postgresDB)
-	AllModelDaos.BrandAlias = models.NewBrandingModel(postgresDB)
+	AllModelDaos.Postgres = postgres.NewDbInit(PostgresDB)
+	
 
 	server := NewServer(webServerConfig)
 	server.Router.InitializeRoutes(webServerConfig)

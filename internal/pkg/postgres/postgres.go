@@ -1,10 +1,13 @@
 package postgres
 
 import (
+	"context"
+	"errors"
 	"fmt"
+	"kiplingkelvin/golang-skeleton/internal/merchants/models"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"kiplingkelvin/golang-skeleton/internal/models"
 )
 
 type Postgres struct {
@@ -25,6 +28,7 @@ func NewPostgres(config *Config) *Postgres {
 		config: config,
 	}
 }
+
 
 func (dao *Postgres) Connect() (db *gorm.DB, err error) {
 	db, err = gorm.Open(postgres.Open(dao.getConnectionString()), nil)
@@ -61,8 +65,60 @@ func (dao *Postgres) Db() (*gorm.DB, error) {
 		}
 
 		//If connection is okay Run Migrations
-		db.AutoMigrate(&models.HealthCheck{})
+		db.AutoMigrate(&models.Merchant{})
 		dao.db = db
 	}
 	return dao.db, nil
 }
+
+
+
+func (dao *Postgres) Create(ctx context.Context, model interface{}) (*uint, error) {
+
+	tx := dao.db.FirstOrCreate(&model)
+
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+
+	if tx.RowsAffected != 1 {
+		return nil, errors.New("exists")
+	}
+
+	return nil, nil
+}
+
+func (dao *Postgres) Update(ctx context.Context, model interface{}) error {
+	tx := dao.db.Model(&model).Updates(model)
+	if tx.Error != nil {
+		return tx.Error
+	}
+	return nil
+}
+
+func (dao *Postgres) Get(ctx context.Context, model interface{}) (*interface{}, error) {
+	var data *interface{}
+	tx := dao.db.Model(model).First(&data)
+
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+
+	return data, nil
+}
+
+func (dao *Postgres) GetAll(ctx context.Context) (*[]interface{}, error) {
+	var data []interface{}
+	tx := dao.db.Find(&data)
+
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+
+	if tx.RowsAffected != 1 {
+		return nil, errors.New("not found")
+	}
+
+	return &data, nil
+}
+

@@ -1,13 +1,12 @@
 package models
 
 import (
-	"context"
-	"errors"
-	"gorm.io/gorm"
+	"kiplingkelvin/golang-skeleton/internal/common/models"
+	"kiplingkelvin/golang-skeleton/internal/common/utils"
 )
 
 type Merchant struct {
-	Model                   `gorm:"embedded"`
+	models.Model                   `gorm:"embedded"`
 	FirstName               string `json:"first_name"`
 	LastName                string `json:"last_name"`
 	CompanyName             string `json:"company_name"`
@@ -38,62 +37,21 @@ type Merchant struct {
 	ShopifyAccessToken      string `json:"shopify_access_token" gorm:"default:null"`
 }
 
-// Create a custom MerchantModel type which wraps the gorm.DB connection pool.
-type MerchantModel struct {
-	DB *gorm.DB
+type MerchantRegisterRequest struct {
+	Email              string `json:"email" validate:"required,email"`
+	FirstName          string `json:"first_name" validate:"required"`
+	LastName           string `json:"last_name" validate:"required"`
+	Company            string `json:"company" validate:"required"`
+	PhoneNumber        string `json:"phone_number" validate:"required"`
+	Password           string `json:"password" validate:"required"`
+	IsShopifyActive    bool   `json:"is_shopify_active"`
+	ShopifyCode        string `json:"shopify_code"`
+	ShopifyDomain      string `json:"shopify_domain"`
+	ShopifyAccessToken string `json:"shopify_access_token"`
 }
 
-func NewMerchantModel(db *gorm.DB) *MerchantModel {
-	return &MerchantModel{
-		DB: db,
-	}
-}
-
-func (dao *MerchantModel) Create(ctx context.Context, merchant Merchant) (*uint, error) {
-
-	tx := dao.DB.Where("email = ?", merchant.BusinessEmail).FirstOrCreate(&merchant)
-
-	if tx.Error != nil {
-		return nil, tx.Error
-	}
-
-	if tx.RowsAffected != 1 {
-		return nil, errors.New("exists")
-	}
-
-	return &merchant.ID, nil
-}
-
-func (dao *MerchantModel) Update(ctx context.Context, merchant Merchant) error {
-	tx := dao.DB.Model(&Merchant{}).Where("id = ?", merchant.ID).Updates(merchant)
-	if tx.Error != nil {
-		return tx.Error
-	}
-	return nil
-}
-
-func (dao *MerchantModel) Get(ctx context.Context, model Merchant) (*Merchant, error) {
-	var merchant *Merchant
-	tx := dao.DB.Model(model).First(&merchant)
-
-	if tx.Error != nil {
-		return nil, tx.Error
-	}
-
-	return merchant, nil
-}
-
-func (dao *MerchantModel) GetAll(ctx context.Context) (*[]Merchant, error) {
-	var merchants []Merchant
-	tx := dao.DB.Find(&merchants)
-
-	if tx.Error != nil {
-		return nil, tx.Error
-	}
-
-	if tx.RowsAffected != 1 {
-		return nil, errors.New("not found")
-	}
-
-	return &merchants, nil
+type MerchantRegisterResponse struct {
+	utils.Response
+	ConfirmEmailURL string `json:"confirm_email_url"`
+	IsShopifyActive bool   `json:"is_shopify_active"`
 }

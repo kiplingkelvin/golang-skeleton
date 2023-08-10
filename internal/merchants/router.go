@@ -2,7 +2,7 @@ package merchants
 
 import (
 	"kiplingkelvin/golang-skeleton/internal/config"
-	"kiplingkelvin/golang-skeleton/internal/models"
+	"kiplingkelvin/golang-skeleton/internal/pkg/postgres"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -11,7 +11,7 @@ import (
 // Payload ...
 type Payload struct {
 	Router *mux.Router
-	DAO    models.PostgresDAO
+	DAO    postgres.PostgresDAO
 	Config *config.WebServerConfig
 }
 

@@ -1,7 +1,8 @@
 package config
 
 import (
-	"kiplingkelvin/golang-skeleton/internal/services"
+	"kiplingkelvin/golang-skeleton/internal/pkg"
+	"kiplingkelvin/golang-skeleton/internal/pkg/postgres"
 
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
@@ -14,11 +15,12 @@ const (
 
 // WebServerConfig ...
 type WebServerConfig struct {
-	Port        string `required:"true" split_words:"true"`
-	EnableAuth  bool
-	CorsEnabled bool   `default:"true" split_words:"true"`
-	JWTSecret   string `required:"true" split_words:"true"`
-	Service     *services.ServiceConfig
+	Port           string `required:"true" split_words:"true"`
+	EnableAuth     bool
+	CorsEnabled    bool            `default:"true" split_words:"true"`
+	JWTSecret      string          `required:"true" split_words:"true"`
+	PostgresConfig postgres.Config `required:"true" split_words:"true"`
+	Service        *pkg.ServiceConfig
 }
 
 // FromEnv ...

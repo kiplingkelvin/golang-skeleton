@@ -3,12 +3,18 @@ package server
 import (
 	"fmt"
 	"kiplingkelvin/golang-skeleton/internal/config"
-	"kiplingkelvin/golang-skeleton/internal/services"
+	"kiplingkelvin/golang-skeleton/internal/models"
+	"kiplingkelvin/golang-skeleton/internal/pkg"
+	"kiplingkelvin/golang-skeleton/internal/pkg/postgres"
+
 	"net/http"
 
 	"github.com/rs/cors"
 	"github.com/sirupsen/logrus"
 )
+
+// This time make models.BookModel the dependency in Env.
+var AllModelDaos models.PostgresDAO
 
 // Server ...
 type Server struct {
@@ -35,11 +41,18 @@ func RunServer() (err error) {
 
 	logrus.Infof("Starting HTTPS server on port %s", webServerConfig.Port)
 
-	err = services.Initialize(webServerConfig.Service)
+	err = pkg.Initialize(webServerConfig.Service)
 	if err != nil {
 		logrus.WithField("Error", err).Error("Error initializing service")
 		return err
 	}
+
+	postgresDB, err := postgres.NewPostgres(&webServerConfig.PostgresConfig).Db()
+
+	// Initalise all the model daos
+	AllModelDaos.Healthcheck = models.NewHealthCheckModel(postgresDB)
+	AllModelDaos.Merchant = models.NewMerchantModel(postgresDB)
+	AllModelDaos.BrandAlias = models.NewBrandingModel(postgresDB)
 
 	server := NewServer(webServerConfig)
 	server.Router.InitializeRoutes(webServerConfig)
@@ -53,9 +66,9 @@ func RunServer() (err error) {
 	var handler http.Handler
 
 	if webServerConfig.CorsEnabled {
-		handler = c.Handler(*server.Router)
+		handler = c.Handler(*&server.Router.Router)
 	} else {
-		handler = *server.Router
+		handler = *&server.Router.Router
 	}
 
 	if err := http.ListenAndServe(

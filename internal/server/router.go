@@ -1,28 +1,34 @@
 package server
 
 import (
-    "net/http"
-    "github.com/gorilla/mux"
 	"kiplingkelvin/golang-skeleton/internal/config"
-	"kiplingkelvin/golang-skeleton/internal/server/handlers"
+	"kiplingkelvin/golang-skeleton/internal/models"
+	"kiplingkelvin/golang-skeleton/internal/server/handlers/branding"
+	"kiplingkelvin/golang-skeleton/internal/server/handlers/healthcheck"
+	"kiplingkelvin/golang-skeleton/internal/server/handlers/merchants"
+
+	"github.com/gorilla/mux"
 )
 
 // Router ...
 type Router struct {
-	*mux.Router
+	Router *mux.Router
+	DAO    models.PostgresDAO
 }
 
 // NewRouter ...
 func NewRouter() *Router {
-	return &Router{mux.NewRouter()}
+	return &Router{
+		Router: mux.NewRouter(),
+		DAO:    AllModelDaos,
+	}
 }
 
 // InitializeRoutes ...
 func (r *Router) InitializeRoutes(cfg *config.WebServerConfig) {
-
 	route := r.Router.PathPrefix("/v1").Subrouter()
 
-	//handlers
-	route.HandleFunc("/test", handlers.TestHandler).Methods(http.MethodGet)
-
+	healthcheck.InitializeRoute(healthcheck.TestRouter{Router: route, DAO: r.DAO, Config: cfg})
+	merchants.InitializeRoute(merchants.Payload{Router: route, DAO: r.DAO, Config: cfg})
+	branding.InitializeRoute(branding.Payload{Router: route, DAO: r.DAO, Config: cfg})
 }

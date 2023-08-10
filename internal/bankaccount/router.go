@@ -1,4 +1,4 @@
-package merchants
+package bankaccount
 
 import (
 	"kiplingkelvin/golang-skeleton/internal/config"
@@ -19,8 +19,8 @@ type Payload struct {
 func InitializeRoute(payload Payload) {
 
 	//handlers
-	payload.Router.HandleFunc("/merchant-create", payload.MerchantRegistrationHandler).Methods(http.MethodPost)
-	payload.Router.HandleFunc("/merchant-update", payload.ProfileUpdateHandler).Methods(http.MethodPut)
-	payload.Router.HandleFunc("/merchant-get", payload.ProfileGetHandler).Methods(http.MethodGet)
+	payload.Router.HandleFunc("/bankaccount-create", payload.BankAccountCreateHandler).Methods(http.MethodPost)
+	payload.Router.HandleFunc("/bankaccount-update", payload.BankAccountUpdateHandler).Methods(http.MethodPut)
+	payload.Router.HandleFunc("/bankaccount-get", payload.BankAccountGetHandler).Methods(http.MethodGet)
 
 }

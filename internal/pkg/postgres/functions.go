@@ -3,7 +3,9 @@ package postgres
 import (
 	"context"
 	"errors"
+	"reflect"
 
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
@@ -20,15 +22,30 @@ func NewDbInit(db *gorm.DB) *DbInit {
 
 func (dao *DbInit) Create(ctx context.Context, model interface{}) (*uint, error) {
 
-	tx := dao.DB.FirstOrCreate(&model)
+	// Start a new transaction
+	tx := dao.DB.Begin()
 
-	if tx.Error != nil {
-		return nil, tx.Error
+	// Use reflection to create a new pointer to the type of model
+	modelPtr := reflect.New(reflect.TypeOf(model))
+
+	// Dereference the pointer and set the value
+	modelPtr.Elem().Set(reflect.ValueOf(model))
+
+	// Call FirstOrCreate with the pointer to the model
+	result := tx.FirstOrCreate(modelPtr.Interface())
+
+	if result.Error != nil {
+		tx.Rollback() // Rollback transaction if there's an error
+		return nil, result.Error
 	}
 
-	if tx.RowsAffected != 1 {
+	if result.RowsAffected != 1 {
+		tx.Rollback() // Rollback transaction if the row does not exist
 		return nil, errors.New("exists")
 	}
+
+	// Commit the transaction
+	tx.Commit()
 
 	return nil, nil
 }

@@ -1,21 +1,21 @@
-package merchants
+package bankaccount
 
 import (
-	"net/http"
-	"strings"
-
+	bank_accounts_models "kiplingkelvin/golang-skeleton/internal/bankaccount/models"
 	"kiplingkelvin/golang-skeleton/internal/common/utils"
-	"kiplingkelvin/golang-skeleton/internal/merchants/models"
-	merchant_models "kiplingkelvin/golang-skeleton/internal/merchants/models"
+	"net/http"
 
 	"github.com/go-playground/validator"
 	"github.com/sirupsen/logrus"
 )
 
-func (p *Payload) MerchantRegistrationHandler(w http.ResponseWriter, r *http.Request) {
+func (p *Payload) BankAccountCreateHandler(w http.ResponseWriter, r *http.Request) {
 
-	var request merchant_models.MerchantRegisterRequest
+	var request bank_accounts_models.BankAccount
 	utils.UnmarshallJSONFromRequest(w, r, &request)
+	logrus.Info("Merchant registration request received. ", request)
+
+
 
 	// Validate struct fields
 	validate := validator.New()
@@ -30,21 +30,9 @@ func (p *Payload) MerchantRegistrationHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	phoneNumber := strings.ReplaceAll(request.PhoneNumber, " ", "")
-	merchant := models.Merchant{
-		BusinessEmail:      strings.ToLower(request.Email),
-		FirstName:          request.FirstName,
-		LastName:           request.LastName,
-		CompanyName:        request.Company,
-		MobileNumber:       "+2547" + phoneNumber[len(phoneNumber)-8:],
-		Password:           []byte(request.Password),
-		IsShopifyActive:    request.IsShopifyActive,
-		ShopifyCode:        request.ShopifyCode,
-		ShopifyDomain:      request.ShopifyDomain,
-		ShopifyAccessToken: request.ShopifyAccessToken,
-	}
 
-	_, err = p.DAO.Postgres.Create(r.Context(), merchant)
+
+	_, err = p.DAO.Postgres.Create(r.Context(), request)
 	if err != nil {
 		logrus.WithError(err).Logger.Error("creating merchant db error")
 		utils.WriteErrorResponse(w, utils.Response{
@@ -55,9 +43,9 @@ func (p *Payload) MerchantRegistrationHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	response := merchant_models.MerchantRegisterResponse{
+	response := bank_accounts_models.BankAccountCreateResponse{
 		Response: utils.Response{
-			Message: "sign up successful",
+			Message: "bank account created successfully",
 			Status:  http.StatusCreated,
 			Success: true,
 		},
@@ -74,12 +62,13 @@ func (p *Payload) MerchantRegistrationHandler(w http.ResponseWriter, r *http.Req
 		}, utils.ContentTypeJSON, http.StatusInternalServerError)
 		return
 	}
-}
-
-func (p *Payload) ProfileUpdateHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (p *Payload) ProfileGetHandler(w http.ResponseWriter, r *http.Request) {
+func (p *Payload) BankAccountUpdateHandler(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (p *Payload) BankAccountGetHandler(w http.ResponseWriter, r *http.Request) {
 
 }

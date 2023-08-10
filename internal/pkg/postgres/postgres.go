@@ -4,7 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"kiplingkelvin/golang-skeleton/internal/merchants/models"
+	merchants "kiplingkelvin/golang-skeleton/internal/merchants/models"
+	bankaccount "kiplingkelvin/golang-skeleton/internal/bankaccount/models"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -65,7 +66,8 @@ func (dao *Postgres) Db() (*gorm.DB, error) {
 		}
 
 		//If connection is okay Run Migrations
-		db.AutoMigrate(&models.Merchant{})
+		db.AutoMigrate(&merchants.Merchant{})
+		db.AutoMigrate(&bankaccount.BankAccount{})
 		dao.db = db
 	}
 	return dao.db, nil

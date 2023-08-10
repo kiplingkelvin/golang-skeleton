@@ -11,7 +11,6 @@ services:
     ports:
       - "$GOLANGSKELETON_PORT:$GOLANGSKELETON_PORT"
     volumes:
-      - "${GOLANGSKELETON_APP_DIR}:/go/src/github.com/kiplingkelvin/golang-skeleton"
       - go-modules:/go/pkg/mod
       
       

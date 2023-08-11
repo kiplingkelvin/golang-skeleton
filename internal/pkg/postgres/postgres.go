@@ -5,11 +5,16 @@ import (
 	"errors"
 	"fmt"
 	"kiplingkelvin/golang-skeleton/internal/merchants/models"
-
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
+var Service PostgresService
+type PostgresService struct {
+	DAO         DataAccess
+}
+
+var pg Postgres
 type Postgres struct {
 	db     *gorm.DB
 	config *Config
@@ -23,28 +28,36 @@ type Config struct {
 	Port         uint32 `envconfig:"DB_DATABASE_PORT" required:"false" split_words:"true" default:"5432" `
 }
 
-func NewPostgres(config *Config) *Postgres {
-	return &Postgres{
-		config: config,
+func InitDB(config *Config) error {
+	pg.config = config
+
+	//Open DB connection
+	db, err := Connect()
+	if err != nil {
+		return err
 	}
+	pg.db = db
+
+	//Initialize the DAOs
+	Service.DAO = &Postgres{}
+	return nil
 }
 
 
-func (dao *Postgres) Connect() (db *gorm.DB, err error) {
-	db, err = gorm.Open(postgres.Open(dao.getConnectionString()), nil)
+func Connect() (db *gorm.DB, err error) {
+	db, err = gorm.Open(postgres.Open(getConnectionString()), nil)
 	if err != nil {
 		return nil, err
 	}
-	dao.db = db
 	return db, nil
 }
 
-func (dao *Postgres) getConnectionString() string {
-	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable", dao.config.Host, dao.config.User, dao.config.Password, dao.config.DatabaseName, dao.config.Port)
+func getConnectionString() string {
+	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable", pg.config.Host, pg.config.User, pg.config.Password, pg.config.DatabaseName, pg.config.Port)
 }
 
-func (dao *Postgres) Ping() error {
-	db, err := dao.Connect()
+func Ping() error {
+	db, err := Connect()
 	if err != nil {
 		return err
 	}
@@ -57,20 +70,18 @@ func (dao *Postgres) Ping() error {
 	return sqlDB.Ping()
 }
 
-func (dao *Postgres) Db() (*gorm.DB, error) {
-	if dao.db == nil {
-		db, err := dao.Connect()
+func Migrations() error {
+	if pg.db == nil {
+		db, err := Connect()
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		//If connection is okay Run Migrations
 		db.AutoMigrate(&models.Merchant{})
-		dao.db = db
 	}
-	return dao.db, nil
+	return nil
 }
-
 
 
 func (dao *Postgres) Create(ctx context.Context, model interface{}) (*uint, error) {
@@ -121,4 +132,5 @@ func (dao *Postgres) GetAll(ctx context.Context) (*[]interface{}, error) {
 
 	return &data, nil
 }
+
 

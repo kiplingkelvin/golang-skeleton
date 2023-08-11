@@ -7,12 +7,12 @@ import (
 	"kiplingkelvin/golang-skeleton/internal/common/utils"
 	"kiplingkelvin/golang-skeleton/internal/merchants/models"
 	merchant_models "kiplingkelvin/golang-skeleton/internal/merchants/models"
-
+	"kiplingkelvin/golang-skeleton/internal/pkg/postgres"
 	"github.com/go-playground/validator"
 	"github.com/sirupsen/logrus"
 )
 
-func (p *Payload) MerchantRegistrationHandler(w http.ResponseWriter, r *http.Request) {
+func MerchantRegistrationHandler(w http.ResponseWriter, r *http.Request) {
 
 
 	var request merchant_models.MerchantRegisterRequest
@@ -44,8 +44,9 @@ func (p *Payload) MerchantRegistrationHandler(w http.ResponseWriter, r *http.Req
 		ShopifyDomain:      request.ShopifyDomain,
 		ShopifyAccessToken: request.ShopifyAccessToken,
 	}
+	
 
-	_, err = p.DAO.Postgres.Create(r.Context(), merchant)
+	_, err = postgres.Service.DAO.Create(r.Context(), merchant)
 	if err != nil {
 		logrus.WithError(err).Logger.Error("creating merchant db error")
 		utils.WriteErrorResponse(w, utils.Response{
@@ -77,10 +78,10 @@ func (p *Payload) MerchantRegistrationHandler(w http.ResponseWriter, r *http.Req
 	}
 }
 
-func (p *Payload) ProfileUpdateHandler(w http.ResponseWriter, r *http.Request) {
+func ProfileUpdateHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (p *Payload) ProfileGetHandler(w http.ResponseWriter, r *http.Request) {
+func ProfileGetHandler(w http.ResponseWriter, r *http.Request) {
 
 }

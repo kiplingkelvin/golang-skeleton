@@ -11,10 +11,6 @@ import (
 	"github.com/rs/cors"
 	"github.com/sirupsen/logrus"
 )
-
-// This time make models.BookModel the dependency in Env.
-var AllModelDaos postgres.PostgresDAO
-
 // Server ...
 type Server struct {
 	Configuration *config.WebServerConfig
@@ -46,10 +42,11 @@ func RunServer() (err error) {
 		return err
 	}
 
-	PostgresDB, err := postgres.NewPostgres(&webServerConfig.PostgresConfig).Db()
-
-	AllModelDaos.Postgres = postgres.NewDbInit(PostgresDB)
-	
+	err = postgres.InitDB(&webServerConfig.PostgresConfig)
+	if err != nil {
+		logrus.WithField("Error", err).Error("Error initializing postgres db")
+		return err
+	}
 
 	server := NewServer(webServerConfig)
 	server.Router.InitializeRoutes(webServerConfig)

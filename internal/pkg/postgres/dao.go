@@ -1,7 +1,6 @@
 package postgres
 
-import ("context"
-)
+import "context"
 
 
 type DataAccess interface {
@@ -11,6 +10,3 @@ type DataAccess interface {
 	GetAll(context.Context) (*[]interface{}, error)
 }
 
-type PostgresDAO struct {
-	Postgres DataAccess
-}

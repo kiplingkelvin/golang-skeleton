@@ -11,6 +11,7 @@ import (
 	"github.com/rs/cors"
 	"github.com/sirupsen/logrus"
 )
+
 // Server ...
 type Server struct {
 	Configuration *config.WebServerConfig
@@ -47,6 +48,8 @@ func RunServer() (err error) {
 		logrus.WithField("Error", err).Error("Error initializing postgres db")
 		return err
 	}
+
+	postgres.Migrations()
 
 	server := NewServer(webServerConfig)
 	server.Router.InitializeRoutes(webServerConfig)

@@ -2,11 +2,9 @@ package postgres
 
 import "context"
 
-
 type DataAccess interface {
-	Create(context.Context, interface{}) (*uint, error)
-	Update(context.Context, interface{}) error
-	Get(context.Context, interface{}) (*interface{}, error)
-	GetAll(context.Context) (*[]interface{}, error)
+	Create(ctx context.Context, condition interface{}, model interface{}) (interface{}, error)
+	Update(ctx context.Context, condition interface{}, model interface{}) error
+	Get(ctx context.Context, condition interface{}) (interface{}, error)
+	GetAll(ctx context.Context, model interface{}) ([]interface{}, error)
 }
-

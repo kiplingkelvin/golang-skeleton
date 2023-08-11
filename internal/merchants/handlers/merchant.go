@@ -1,21 +1,18 @@
-package merchants
+package handlers
 
 import (
-	"net/http"
-	"strings"
-
-	"kiplingkelvin/golang-skeleton/internal/common/utils"
-	"kiplingkelvin/golang-skeleton/internal/merchants/models"
-	merchant_models "kiplingkelvin/golang-skeleton/internal/merchants/models"
-	"kiplingkelvin/golang-skeleton/internal/pkg/postgres"
 	"github.com/go-playground/validator"
 	"github.com/sirupsen/logrus"
+	"kiplingkelvin/golang-skeleton/internal/common/utils"
+	"kiplingkelvin/golang-skeleton/internal/merchants/models"
+	"kiplingkelvin/golang-skeleton/internal/pkg/postgres"
+	"net/http"
+	"strings"
 )
 
 func MerchantRegistrationHandler(w http.ResponseWriter, r *http.Request) {
 
-
-	var request merchant_models.MerchantRegisterRequest
+	var request models.MerchantRegisterRequest
 	utils.UnmarshallJSONFromRequest(w, r, &request)
 
 	// Validate struct fields
@@ -44,9 +41,8 @@ func MerchantRegistrationHandler(w http.ResponseWriter, r *http.Request) {
 		ShopifyDomain:      request.ShopifyDomain,
 		ShopifyAccessToken: request.ShopifyAccessToken,
 	}
-	
 
-	_, err = postgres.Service.DAO.Create(r.Context(), merchant)
+	_, err = postgres.Service.DAO.Create(r.Context(), models.Merchant{BusinessEmail: merchant.BusinessEmail}, merchant)
 	if err != nil {
 		logrus.WithError(err).Logger.Error("creating merchant db error")
 		utils.WriteErrorResponse(w, utils.Response{
@@ -57,7 +53,7 @@ func MerchantRegistrationHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := merchant_models.MerchantRegisterResponse{
+	response := models.MerchantRegisterResponse{
 		Response: utils.Response{
 			Message: "sign up successful",
 			Status:  http.StatusCreated,

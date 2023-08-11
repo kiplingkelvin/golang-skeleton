@@ -1,10 +1,10 @@
 package merchants
 
 import (
-	"kiplingkelvin/golang-skeleton/internal/config"
-	"net/http"
-
 	"github.com/gorilla/mux"
+	"kiplingkelvin/golang-skeleton/internal/config"
+	"kiplingkelvin/golang-skeleton/internal/merchants/handlers"
+	"net/http"
 )
 
 // Payload ...
@@ -17,8 +17,8 @@ type Payload struct {
 func InitializeRoute(payload Payload) {
 
 	//handlers
-	payload.Router.HandleFunc("/registration", MerchantRegistrationHandler).Methods(http.MethodPost)
-	payload.Router.HandleFunc("/profile", ProfileUpdateHandler).Methods(http.MethodPut)
-	payload.Router.HandleFunc("/profile", ProfileGetHandler).Methods(http.MethodGet)
+	payload.Router.HandleFunc("/registration", handlers.MerchantRegistrationHandler).Methods(http.MethodPost)
+	payload.Router.HandleFunc("/profile", handlers.ProfileUpdateHandler).Methods(http.MethodPut)
+	payload.Router.HandleFunc("/profile", handlers.ProfileGetHandler).Methods(http.MethodGet)
 
 }

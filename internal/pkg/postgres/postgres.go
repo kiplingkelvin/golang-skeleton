@@ -5,16 +5,20 @@ import (
 	"errors"
 	"fmt"
 	"kiplingkelvin/golang-skeleton/internal/merchants/models"
+	"reflect"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 var Service PostgresService
+
 type PostgresService struct {
-	DAO         DataAccess
+	DAO DataAccess
 }
 
 var pg Postgres
+
 type Postgres struct {
 	db     *gorm.DB
 	config *Config
@@ -37,12 +41,12 @@ func InitDB(config *Config) error {
 		return err
 	}
 	pg.db = db
+	db.AutoMigrate(&models.Merchant{})
 
 	//Initialize the DAOs
-	Service.DAO = &Postgres{}
+	Service.DAO = &pg
 	return nil
 }
-
 
 func Connect() (db *gorm.DB, err error) {
 	db, err = gorm.Open(postgres.Open(getConnectionString()), nil)
@@ -83,10 +87,14 @@ func Migrations() error {
 	return nil
 }
 
+func (dao *Postgres) Create(ctx context.Context, condition interface{}, model interface{}) (interface{}, error) {
+	// Use reflection to create a new pointer to the type of model
+	modelPtr := reflect.New(reflect.TypeOf(model))
 
-func (dao *Postgres) Create(ctx context.Context, model interface{}) (*uint, error) {
+	// Dereference the pointer and set the value
+	modelPtr.Elem().Set(reflect.ValueOf(model))
 
-	tx := dao.db.FirstOrCreate(&model)
+	tx := dao.db.Where(condition).FirstOrCreate(modelPtr.Interface())
 
 	if tx.Error != nil {
 		return nil, tx.Error
@@ -99,38 +107,55 @@ func (dao *Postgres) Create(ctx context.Context, model interface{}) (*uint, erro
 	return nil, nil
 }
 
-func (dao *Postgres) Update(ctx context.Context, model interface{}) error {
-	tx := dao.db.Model(&model).Updates(model)
+func (dao *Postgres) Update(ctx context.Context, condition interface{}, model interface{}) error {
+	// Use reflection to create a new pointer to the type of model
+	modelPtr := reflect.New(reflect.TypeOf(model))
+
+	// Dereference the pointer and set the value
+	modelPtr.Elem().Set(reflect.ValueOf(model))
+
+	tx := dao.db.Model(&model).Where(condition).Updates(modelPtr.Interface())
 	if tx.Error != nil {
 		return tx.Error
 	}
 	return nil
 }
 
-func (dao *Postgres) Get(ctx context.Context, model interface{}) (*interface{}, error) {
-	var data *interface{}
-	tx := dao.db.Model(model).First(&data)
+func (dao *Postgres) Get(ctx context.Context, condition interface{}) (interface{}, error) {
+	// Use reflection to create a new pointer to the type of model
+	modelPtr := reflect.New(reflect.TypeOf(condition))
+
+	// Call the database query using the pointer to the model
+	tx := dao.db.Where(condition).First(modelPtr.Interface())
 
 	if tx.Error != nil {
 		return nil, tx.Error
 	}
 
-	return data, nil
+	return modelPtr.Elem().Interface(), nil
 }
 
-func (dao *Postgres) GetAll(ctx context.Context) (*[]interface{}, error) {
-	var data []interface{}
-	tx := dao.db.Find(&data)
+func (dao *Postgres) GetAll(ctx context.Context, model interface{}) ([]interface{}, error) {
+	// Create a slice to store the results
+	results := make([]interface{}, 0)
+
+	// Use reflection to create a new pointer to a slice of the model type
+	slicePtr := reflect.New(reflect.SliceOf(reflect.TypeOf(model)))
+
+	// Call the database query to retrieve all records
+	tx := dao.db.Find(slicePtr.Interface())
 
 	if tx.Error != nil {
 		return nil, tx.Error
 	}
 
-	if tx.RowsAffected != 1 {
-		return nil, errors.New("not found")
+	// Convert the slice pointer to a slice value
+	sliceValue := slicePtr.Elem()
+
+	// Iterate through the slice and append each element to the results
+	for i := 0; i < sliceValue.Len(); i++ {
+		results = append(results, sliceValue.Index(i).Addr().Interface())
 	}
 
-	return &data, nil
+	return results, nil
 }
-
-
